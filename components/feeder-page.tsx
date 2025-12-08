@@ -5,7 +5,6 @@ import Image from "next/image"
 import { useRouter, usePathname } from "next/navigation"
 import { useFormContext } from "@/context/FormContext"
 import NavigationMenu from "./navigation-menu"
-import ModelViewer from "./model-viewer"
 import { Printer, RefreshCw, Send, Check, ExternalLink } from "lucide-react"
 import { Howl } from "howler"
 import { motion, AnimatePresence } from "framer-motion"
@@ -59,7 +58,6 @@ export default function FeederPage({
   const [dimensionValue, setDimensionValue] = useState("")
   const [showError, setShowError] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
-  const [showModelViewer, setShowModelViewer] = useState(false)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [showBackToMain, setShowBackToMain] = useState(false)
   const [showContactForm, setShowContactForm] = useState(false)
@@ -77,7 +75,6 @@ export default function FeederPage({
   const printRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
   const pathname = usePathname()
-  const [showInactivityPopup, setShowInactivityPopup] = useState(false)
   const inactivityTimer = useRef<NodeJS.Timeout | null>(null)
   const [showSuccessPoster, setShowSuccessPoster] = useState(false)
   const [emptyMachineFields, setEmptyMachineFields] = useState<string[]>([])
@@ -96,38 +93,6 @@ export default function FeederPage({
       }
     }
   }, [])
-
-  function startInactivityTimer() {
-    if (inactivityTimer.current) {
-      clearTimeout(inactivityTimer.current)
-    }
-    inactivityTimer.current = setTimeout(() => {
-      setShowInactivityPopup(true)
-    }, 30000)
-  }
-
-  function resetInactivityTimer() {
-    if (showInactivityPopup) {
-      if (inactivityTimer.current) {
-        clearTimeout(inactivityTimer.current)
-      }
-      return
-    }
-    startInactivityTimer()
-  }
-
-  useEffect(() => {
-    const handleUserActivity = () => {
-      resetInactivityTimer()
-    }
-    const events = ["mousemove", "keydown", "mousedown", "touchstart", "scroll"]
-    events.forEach((event) => window.addEventListener(event, handleUserActivity))
-    startInactivityTimer()
-    return () => {
-      events.forEach((event) => window.removeEventListener(event, handleUserActivity))
-      if (inactivityTimer.current) clearTimeout(inactivityTimer.current)
-    }
-  }, [showInactivityPopup])
 
   const allDimensionsFilled = () => {
     return Object.keys(dimensionDescriptions).every((key) => feederData.dimensions[key])
@@ -796,115 +761,6 @@ export default function FeederPage({
     <>
       <NavigationMenu />
       <div className="bg-[#f2f4f4] min-h-screen w-[1050px] overflow-auto mx-auto p-4 print:p-0 light">
-        {/* Inactivity Popup with Conversation */}
-        {showInactivityPopup && (
-          <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
-            {/* Floating Logos */}
-            <div className="absolute animate-floatAround">
-              <Image src="/tnc-home-logo-nw.png" alt="TNC Logo" width={60} height={60} className="drop-shadow-lg" />
-            </div>
-            <div className="absolute animate-floatAroundReverse">
-              <Image src="/tnc-home-logo-nw.png" alt="TNC Logo" width={60} height={60} className="drop-shadow-lg" />
-            </div>
-            {/* Chat Container */}
-            <div className="relative z-10 bg-white rounded-2xl shadow-xl p-6 max-w-md mx-4 animate-fadeIn">
-              {/* Close button */}
-              <button
-                onClick={() => {
-                  setShowInactivityPopup(false)
-                  setConversationStep(0)
-                  setShowImBackButton(true)
-                  startInactivityTimer()
-                }}
-                className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-xl"
-                aria-label="Close"
-              >
-                ×
-              </button>
-              <div className="flex flex-col space-y-4 min-h-[200px]">
-                {/* Company Message (Left side) */}
-                <div className="flex items-start space-x-3">
-                  <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-200 flex-shrink-0">
-                    <img src="/tnc-home-logo.png" alt="TNC Logo" className="w-full h-full object-cover" />
-                  </div>
-                  <div className="bg-gray-100 rounded-2xl rounded-tl-sm px-4 py-3 max-w-xs">
-                    <p className="text-sm font-medium text-gray-800">
-                      Are you still there? We're here waiting for you to come back 😊
-                    </p>
-                  </div>
-                </div>
-                {/* User Message (Right side) - Shows after user clicks "I'm back" */}
-                {conversationStep >= 1 && (
-                  <div className="flex items-start space-x-3 justify-end">
-                    <div className="bg-blue-500 text-white rounded-2xl rounded-tr-sm px-4 py-3 max-w-xs">
-                      <p className="text-sm">I'm back!</p>
-                    </div>
-                    <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold flex-shrink-0">
-                      U
-                    </div>
-                  </div>
-                )}
-                {/* Company Welcome Back Message (Left side) */}
-                {conversationStep >= 2 && (
-                  <div className="flex items-start space-x-3">
-                    <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-200 flex-shrink-0">
-                      <img src="/tnc-home-logo.png" alt="TNC Logo" className="w-full h-full object-cover" />
-                    </div>
-                    <div className="bg-green-100 rounded-2xl rounded-tl-sm px-4 py-3 max-w-xs border border-green-200">
-                      <p className="text-sm font-medium text-green-800">Welcome back! 🎉</p>
-                      <p className="text-xs text-green-600 mt-1">Great to have you here again!</p>
-                    </div>
-                  </div>
-                )}
-                {/* I'm Back Button */}
-                {showImBackButton && conversationStep === 0 && (
-                  <div className="flex justify-center pt-4">
-                    <button
-                      onClick={() => {
-                        setConversationStep(1)
-                        setShowImBackButton(false)
-                        setTimeout(() => {
-                          setConversationStep(2)
-                          setTimeout(() => {
-                            setShowInactivityPopup(false)
-                            setConversationStep(0)
-                            setShowImBackButton(true)
-                            startInactivityTimer()
-                          }, 2000)
-                        }, 1000)
-                      }}
-                      className="bg-red-700 text-white px-6 py-2 rounded-full font-medium transition-colors duration-200 shadow-lg"
-                    >
-                      I'm back
-                    </button>
-                  </div>
-                )}
-                {/* Typing indicator when showing welcome message */}
-                {conversationStep === 1 && (
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-200 flex-shrink-0">
-                      <img src="/tnc-home-logo.png" alt="TNC Logo" className="w-full h-full object-cover" />
-                    </div>
-                    <div className="bg-gray-100 rounded-2xl px-4 py-3">
-                      <div className="flex space-x-1">
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                        <div
-                          className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                          style={{ animationDelay: "0.1s" }}
-                        ></div>
-                        <div
-                          className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                          style={{ animationDelay: "0.2s" }}
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
         <div ref={printRef} className="print-container flex flex-col h-[297mm] p-4 print:p-0 relative">
           {/* Original title */}
           <h1 className="text-2xl font-bold text-center mb-4">{title}</h1>
@@ -986,6 +842,7 @@ export default function FeederPage({
                 positions3D={dimensionPositions3D} // Passed from props
                 onDimensionClick={handleDimensionClick}
                 onClearData={handleClearData}
+                hideMarkers={!!currentDimension || showSuccessModal || showContactForm || showPasteModal}
               />
             </div>
             <div className="absolute bottom-6 right-6 flex print:hidden z-20">
@@ -1016,7 +873,7 @@ export default function FeederPage({
         {/* Rest of the modals remain the same... */}
         {/* Input Dialog */}
         {currentDimension && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 print:hidden">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-200 print:hidden">
             <div className="bg-white p-6 rounded-lg shadow-lg w-80">
               <h3 className="text-lg font-bold mb-4">
                 Enter dimension {currentDimension}: {dimensionDescriptions[currentDimension]}
@@ -1051,7 +908,7 @@ export default function FeederPage({
 
         {/* Success Modal */}
         {showSuccessModal && (
-          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center print:hidden">
+          <div className="fixed inset-0 bg-black/60 z-200 flex items-center justify-center print:hidden">
             <div className="relative bg-white p-6 rounded-lg w-[500px] shadow-lg text-center">
               <button
                 onClick={() => setShowSuccessModal(false)}
@@ -1068,15 +925,6 @@ export default function FeederPage({
                 <button
                   onClick={() => {
                     setShowSuccessModal(false)
-                    setShowModelViewer(true)
-                  }}
-                  className="bg-white text-black border border-black px-6 py-2 rounded-md"
-                >
-                  View 3D
-                </button>
-                <button
-                  onClick={() => {
-                    setShowSuccessModal(false)
                     handleSend()
                   }}
                   className="bg-black text-white px-6 py-2 rounded-md flex items-center"
@@ -1089,22 +937,9 @@ export default function FeederPage({
           </div>
         )}
 
-        {/* Model Viewer */}
-        {showModelViewer && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 print:hidden">
-            <ModelViewer
-              modelPath={modelPath}
-              isOpen={showModelViewer}
-              onClose={() => setShowModelViewer(false)}
-              onLoad={() => {}}
-              dimensions={feederData.dimensions}
-            />
-          </div>
-        )}
-
         {/* Contact Form */}
         {showContactForm && (
-          <div className="fixed inset-0 bg-black/60 z-40 flex items-center justify-center print:hidden">
+          <div className="fixed inset-0 bg-black/60 z-200 flex items-center justify-center print:hidden">
             <div className="bg-white rounded-lg p-6 shadow-md w-[500px] max-h-[90vh] overflow-y-auto relative">
               <button
                 onClick={() => setShowContactForm(false)}
@@ -1459,7 +1294,7 @@ export default function FeederPage({
 
         {/* Back to Main */}
         {showBackToMain && (
-          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center print:hidden">
+          <div className="fixed inset-0 bg-black/60 z-200 flex items-center justify-center print:hidden">
             <div className="relative bg-white p-6 rounded-lg w-[500px] shadow-lg text-center">
               <h2 className="text-2xl font-bold mb-4">Back to main page or continue with the new configuration?</h2>
               <img src="/tick.gif" alt="TNC logo" className="mx-auto mb-4 w-70 h-auto" />
@@ -1495,7 +1330,7 @@ export default function FeederPage({
 
         {/* Paste Data Modal */}
         {showPasteModal && (
-          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center print:hidden">
+          <div className="fixed inset-0 bg-black/60 z-200 flex items-center justify-center print:hidden">
             <div className="bg-white rounded-lg p-6 shadow-md w-[600px] max-h-[80vh] overflow-auto">
               <h2 className="text-xl font-bold mb-4">Paste Configuration Data</h2>
               <p className="text-sm text-gray-600 mb-4">

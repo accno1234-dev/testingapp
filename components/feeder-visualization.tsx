@@ -6,6 +6,14 @@ import { Canvas } from "@react-three/fiber"
 import { OrbitControls, useGLTF, Html, Environment, ContactShadows } from "@react-three/drei"
 import { RefreshCw, Box, Image as ImageIcon } from "lucide-react"
 
+type InteractiveModelProps = {
+  modelPath: string
+  dimensions: Record<string, string>
+  positions3D?: Record<string, [number, number, number]>
+  onDimensionClick: (key: string) => void
+  hideMarkers?: boolean 
+}
+
 type FeederVisualizationProps = {
   imageSrc: string
   modelPath: string
@@ -15,19 +23,16 @@ type FeederVisualizationProps = {
   onDimensionClick: (key: string) => void
   onClearData: () => void
   isReadOnly?: boolean // For print view
+  hideMarkers?: boolean
 }
 
 function InteractiveModel({ 
   modelPath, 
   dimensions, 
   positions3D, 
-  onDimensionClick 
-}: { 
-  modelPath: string
-  dimensions: Record<string, string>
-  positions3D?: Record<string, [number, number, number]>
-  onDimensionClick: (key: string) => void
-}) {
+  onDimensionClick,
+  hideMarkers
+}: InteractiveModelProps) {
   const { scene } = useGLTF(modelPath)
 
   return (
@@ -42,10 +47,10 @@ function InteractiveModel({
       /> {/* Adjust scale based on your Blender export */}
       
       {/* 3D Input Markers */}
-      {positions3D && Object.entries(positions3D).map(([key, position]) => {
+      {!hideMarkers && positions3D && Object.entries(positions3D).map(([key, position]) => {
         const hasValue = !!dimensions[key]
         return (
-          <Html key={key} position={position} center zIndexRange={[100, 0]}>
+          <Html key={key} position={position} center zIndexRange={[50, 0]}>
             <button
               onClick={(e) => {
                 e.stopPropagation() // Prevent rotating when clicking button
@@ -74,7 +79,8 @@ export default function FeederVisualization({
   positions3D,
   onDimensionClick,
   onClearData,
-  isReadOnly = false
+  isReadOnly = false,
+  hideMarkers = false
 }: FeederVisualizationProps) {
   // Default to 3D as requested
   const [viewMode, setViewMode] = useState<"2D" | "3D">("3D")
@@ -148,6 +154,7 @@ export default function FeederVisualization({
                 dimensions={dimensions} 
                 positions3D={positions3D}
                 onDimensionClick={onDimensionClick}
+                hideMarkers={hideMarkers}
               />
               <Environment preset="city" />
             </Suspense>
