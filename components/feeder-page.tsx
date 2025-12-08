@@ -10,6 +10,7 @@ import { Printer, RefreshCw, Send, Check, ExternalLink } from "lucide-react"
 import { Howl } from "howler"
 import { motion, AnimatePresence } from "framer-motion"
 import html2canvas from "html2canvas"
+import FeederVisualization from "./feeder-visualization"
 
 export type FeederPageProps = {
   title: string
@@ -26,6 +27,7 @@ export type FeederPageProps = {
     type: "text" | "select" | "number"
     options?: string[]
   }>
+  dimensionPositions3D?: Record<string, [number, number, number]>
 }
 
 export default function FeederPage({
@@ -35,6 +37,7 @@ export default function FeederPage({
   modelPath = `/models/${feederType}.glb`,
   dimensionDescriptions,
   dimensionPositions,
+  dimensionPositions3D,
   nextPageRoute,
   previousPageRoute,
   machineInfoFields = [
@@ -973,36 +976,24 @@ export default function FeederPage({
           <div className="feeder-info-container border bg-white rounded-md p-4 flex-grow mb-3 relative">
             <h2 className="text-lg font-medium mb-2">Feeder Info</h2>
             <p className="text-sm italic text-red-500 mb-2">* Set value as 0 if there is no dimension</p>
-            <div className="relative w-full" style={{ aspectRatio: "16/9" }}>
-              <Image
-                src={imageSrc || "/placeholder.svg"}
-                alt="Dimension Drawing"
-                fill
-                style={{ objectFit: "contain" }}
-                priority
+
+            <div className="flex-grow relative min-h-[600px]">
+              <FeederVisualization
+                imageSrc={imageSrc}
+                modelPath={modelPath}
+                dimensions={feederData.dimensions}
+                positions2D={dimensionPositions}
+                positions3D={dimensionPositions3D} // Passed from props
+                onDimensionClick={handleDimensionClick}
+                onClearData={handleClearData}
               />
-              {Object.entries(dimensionPositions).map(([dim, { x, y }]) => (
-                <button
-                  key={dim}
-                  onClick={() => handleDimensionClick(dim)}
-                  className={`absolute text-xs flex items-center justify-center ${
-                    feederData.dimensions[dim]
-                      ? "bg-white border-none text-black"
-                      : "bg-white border border-transparent text-red-500"
-                  }`}
-                  style={{
-                    left: `${x}%`,
-                    top: `${y}%`,
-                    transform: "translate(-50%, -50%)",
-                    width: "18px",
-                    height: "18px",
-                    fontSize: "10px",
-                  }}
-                >
-                  {feederData.dimensions[dim] || dim}
-                </button>
-              ))}
             </div>
+            <div className="absolute bottom-6 right-6 flex print:hidden z-20">
+              <button onClick={handleOkClick} className="bg-black text-white px-4 py-2 rounded-md shadow-lg">
+                OK
+              </button>
+            </div>
+
             <div className="absolute bottom-6 left-6 flex print:hidden gap-2">
               <button
                 onClick={handleClearData}

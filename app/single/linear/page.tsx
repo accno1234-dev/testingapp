@@ -16,8 +16,18 @@ const linearDimensionPositions: Record<string, { x: number; y: number }> = {
     B: { x: 64, y: 7 },
     C: { x: 36.7, y: 78 },
     D: { x: 65, y: 57 },
-    E: { x: 47, y: 93.5 },
+    E: { x: 46, y: 93 },
     F: { x: 82, y: 89.5 },
+}
+
+const bowlFeederDimensionPositions3D: Record<string, [number, number, number]> = {
+    A: [-0.74, -2.29, 0.01],   
+    B: [0.07, -2.43, -0.75],
+    C: [-2.57, -0.00, 0.02],
+    D: [-0.11, 2.01, -0.00],
+    E: [-1.67, -2.51, 0.02],
+    F: [1.58, -2.51, 0.02],
+    // ... map all your dimensions
 }
 
 const dimensionConfigs = {
@@ -79,6 +89,7 @@ export default function LinearPage() {
         imageSrc="/linear.jpg" 
         dimensionDescriptions={linearDimensionDescriptions}
         dimensionPositions={linearDimensionPositions}
+        dimensionPositions3D={bowlFeederDimensionPositions3D}
         machineInfoFields={[
           { id: "partName", label: "Part Name / Project No.", type: "text" },
           { id: "linearNo", label: "Linear No.", type: "text" },
