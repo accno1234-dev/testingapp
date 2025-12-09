@@ -14,12 +14,12 @@ const hopperDimensionDescriptions: Record<string, string> = {
 }
 
 const hopperDimensionPositions: Record<string, { x: number; y: number }> = {
-    A: { x: 67.5, y: 7.2 },
-    B: { x: 76, y: 22 },
-    C: { x: 26.4, y: 66.5 },
-    D: { x: 76, y: 48.2 },
+    A: { x: 71.3, y: 7.2 },
+    B: { x: 80.7, y: 21.8 },
+    C: { x: 22.3, y: 65.8 },
+    D: { x: 80.6, y: 48.5 },
     E: { x: 52, y: 76.2 },
-    F: { x: 60, y: 66.5 },
+    F: { x: 62.6, y: 66.3 },
 }
 
 const bowlFeederDimensionPositions3D: Record<string, [number, number, number]> = {

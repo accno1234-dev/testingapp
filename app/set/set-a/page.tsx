@@ -17,14 +17,14 @@ const setADimensionDescriptions: Record<string, string> = {
 
 const setADimensionPositions: Record<string, { x: number; y: number }> = {
     A: { x: 31.2, y: 8 },
-    B: { x: 19.2, y: 20 },
-    C: { x: 22, y: 40 },
-    D: { x: 23.6, y: 55.2 },
+    B: { x: 13.8, y: 20.4 },
+    C: { x: 15.9, y: 38.8 },
+    D: { x: 18, y: 54.8 },
     E: { x: 45.4, y: 29.5 },
-    F: { x: 30.1, y: 52 },
-    G: { x: 21, y: 75.1 },
+    F: { x: 26.7, y: 51.8 },
+    G: { x: 15.8, y: 75 },
     H: { x: 46, y: 72 },
-    I: { x: 22.6, y: 93.5 },
+    I: { x: 17.9, y: 92 },
 }
 
 const bowlFeederDimensionPositions3D: Record<string, [number, number, number]> = {

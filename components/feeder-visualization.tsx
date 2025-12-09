@@ -1,10 +1,10 @@
 "use client"
 
-import { useState, Suspense } from "react"
+import { useState, Suspense, useEffect } from "react"
 import Image from "next/image"
-import { Canvas } from "@react-three/fiber"
-import { OrbitControls, useGLTF, Html, Environment, ContactShadows } from "@react-three/drei"
-import { RefreshCw, Box, Image as ImageIcon } from "lucide-react"
+import { Canvas, useThree } from "@react-three/fiber"
+import { OrbitControls, useGLTF, Html, Environment} from "@react-three/drei"
+import { RefreshCw, Box, Image as ImageIcon, RotateCcw } from "lucide-react"
 
 type InteractiveModelProps = {
   modelPath: string
@@ -24,6 +24,19 @@ type FeederVisualizationProps = {
   onClearData: () => void
   isReadOnly?: boolean // For print view
   hideMarkers?: boolean
+}
+
+// Place this before InteractiveModel
+function ResetCamera({ trigger }: { trigger: number }) {
+  const controls = useThree((state) => state.controls) as any
+  
+  useEffect(() => {
+    if (trigger > 0 && controls) {
+      controls.reset() // This resets the camera to its original position
+    }
+  }, [trigger, controls])
+  
+  return null
 }
 
 function InteractiveModel({ 
@@ -84,6 +97,7 @@ export default function FeederVisualization({
 }: FeederVisualizationProps) {
   // Default to 3D as requested
   const [viewMode, setViewMode] = useState<"2D" | "3D">("3D")
+  const [resetTrigger, setResetTrigger] = useState(0)
 
   return (
     <div className="relative w-full h-full min-h-[700px] bg-gray-50 rounded-lg overflow-hidden border">
@@ -114,6 +128,18 @@ export default function FeederVisualization({
             2D View
           </button>
         </div>
+      )}
+
+      {/* Reset Button */}
+      {!isReadOnly && viewMode === "3D" && (
+        <button
+          onClick={() => setResetTrigger((prev) => prev + 1)}
+          className="absolute top-4 right-4 z-10 flex items-center px-3 py-1.5 rounded-md text-sm font-medium bg-white/80 border shadow-sm backdrop-blur-sm text-gray-700 hover:bg-gray-100 hover:text-black transition-colors"
+          title="Reset Camera View"
+        >
+          <RotateCcw className="w-4 h-4 mr-2" />
+          Reset View
+        </button>
       )}
 
       {/* Main Content Area */}
@@ -156,6 +182,9 @@ export default function FeederVisualization({
                 onDimensionClick={onDimensionClick}
                 hideMarkers={hideMarkers}
               />
+
+              <ResetCamera trigger={resetTrigger} />
+
               <Environment preset="city" />
             </Suspense>
             <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2} />
@@ -166,7 +195,7 @@ export default function FeederVisualization({
       {/* 3D Instructions Overlay */}
       {viewMode === "3D" && !isReadOnly && (
          <div className="absolute bottom-4 right-4 z-0 text-xs text-gray-400 pointer-events-none select-none">
-            Left Click: Rotate • Right Click: Pan • Scroll: Zoom
+            Hold Left Click: Rotate  • Hold Right Click: Pan  • Scroll: Zoom
          </div>
       )}
     </div>

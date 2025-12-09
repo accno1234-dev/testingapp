@@ -15,20 +15,20 @@ const bowlFeederDimensionDescriptions: Record<string, string> = {
 
 const bowlFeederDimensionPositions: Record<string, { x: number; y: number }> = {
     A: { x: 53.5, y: 5.4 },
-    B: { x: 67, y: 25 },
-    C: { x: 36.9, y: 40.4 },
+    B: { x: 70.6, y: 26.9 },
+    C: { x: 35.7, y: 40.4 },
     D: { x: 49.5, y: 49.7 },
-    E: { x: 33.1, y: 73.5 },
-    F: { x: 39.5, y:77}
+    E: { x: 30.2, y: 72.4 },
+    F: { x: 37.8, y:76.9}
 }
 
 const bowlFeederDimensionPositions3D: Record<string, [number, number, number]> = {
-    A: [1.5, 0.5, 0],   
-    B: [0, 1.2, 0],
-    C: [-1.2, 0.5, 0.5],
-    D: [0, 0.5, 0.5],
-    E: [2, 0.5, 0.5],
-    F: [3, 0.5, 0.5],
+    A: [-1.55, 1.39, 0.05],   
+    B: [-0.66, 1.39, -0.90],
+    C: [1.66, 1.50, 0.52],
+    D: [0.42, 1.39, 2.36],
+    E: [-0.25, 0.31, 1.66],
+    F: [1.67, 0.01, 1.16],
     // ... map all your dimensions
 }
 

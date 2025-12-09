@@ -14,10 +14,10 @@ const linearDimensionDescriptions: Record<string, string> = {
 const linearDimensionPositions: Record<string, { x: number; y: number }> = {
     A: { x: 48.5, y: 28 },
     B: { x: 64, y: 7 },
-    C: { x: 36.7, y: 78 },
+    C: { x: 34.4, y: 78 },
     D: { x: 65, y: 57 },
     E: { x: 46, y: 93 },
-    F: { x: 82, y: 89.5 },
+    F: { x: 86.2, y: 89.2 },
 }
 
 const bowlFeederDimensionPositions3D: Record<string, [number, number, number]> = {
