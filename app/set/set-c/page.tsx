@@ -56,7 +56,7 @@ const bowlFeederDimensionPositions3D: Record<string, [number, number, number]> =
     M: [-0.00, -1.26, 2.34],
     N: [-0.02, -1.24, -2.88],
     O: [1.92, -1.20, 0.45],
-    P: [-0.04, -1.21, -1.98],
+    P: [-1.02, -1.23, 1.25],
     // ... map all your dimensions
 }
 
