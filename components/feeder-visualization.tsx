@@ -50,7 +50,14 @@ function InteractiveModel({
 
   return (
     <group>
-      <primitive object={scene} scale={0.01} position={[0, -2.5, 0]} /* x=0, y=-0.5 (Down), z=0 *//> {/* Adjust scale based on your Blender export */}
+      <primitive object={scene} scale={0.01} position={[0, -2.5, 0]} /* x=0, y=-0.5 (Down), z=0 */
+      onClick={(e: any) => {
+        e.stopPropagation()
+        const { x, y, z } = e.point
+        console.log(`[${x.toFixed(2)}, ${y.toFixed(2)}, ${z.toFixed(2)}]`)
+        alert(`3D Coordinates copied to console!\n[${x.toFixed(2)}, ${y.toFixed(2)}, ${z.toFixed(2)}]`)
+      }}
+      /> {/* Adjust scale based on your Blender export */}
       
       {/* 3D Input Markers */}
       {!hideMarkers && positions3D && Object.entries(positions3D).map(([key, position]) => {

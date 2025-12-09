@@ -26,7 +26,7 @@ const setBDimensionPositions: Record<string, { x: number; y: number }> = {
 
 const bowlFeederDimensionPositions3D: Record<string, [number, number, number]> = {
     A: [1.53, -1.29, 0.14],   
-    B: [0.51, 0.46, 1.74],
+    B: [0.52, 0.55, 0.86],
     C: [1.33, 0.46, 1.14],
     D: [-0.06, -1.38, 2.02],
     E: [-0.06, 0.61, -2.86],

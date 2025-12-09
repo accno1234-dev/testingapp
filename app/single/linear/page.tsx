@@ -21,12 +21,12 @@ const linearDimensionPositions: Record<string, { x: number; y: number }> = {
 }
 
 const bowlFeederDimensionPositions3D: Record<string, [number, number, number]> = {
-    A: [-0.74, -2.29, 0.01],   
-    B: [0.07, -2.43, -0.75],
-    C: [-2.57, -0.00, 0.02],
-    D: [-0.11, 2.01, -0.00],
-    E: [-1.67, -2.51, 0.02],
-    F: [1.58, -2.51, 0.02],
+    A: [1.66, -0.96, -0.20],   
+    B: [0.08, -1.20, 2.32],
+    C: [-2.27, 0.45, 0.68],
+    D: [-0.05, 2.23, 0.69],
+    E: [-1.92, -1.21, 0.69],
+    F: [2.01, -1.23, 0.69],
     // ... map all your dimensions
 }
 
