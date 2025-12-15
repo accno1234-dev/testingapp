@@ -562,40 +562,9 @@ export default function FeederPage({
     setIsSpeaking(true)
     setErrorMessage(message)
 
-    let audioFile = "/dimension-not-complete.mp3"
-    if (message.includes("sent")) {
-      audioFile = "/sounds/emailSent.mp3"
-    }
-    if (message.includes("company")) {
-      audioFile = "/sounds/companyName.mp3"
-    }
-    if (message.includes("your name")) {
-      audioFile = "/sounds/name.mp3"
-    }
-    if (message.includes("your email")) {
-      audioFile = "/sounds/email.mp3"
-    }
-    if (message.includes("maximum")) {
-      audioFile = "/sounds/maxNumber.mp3"
-    }
-    if (message.includes("10MB")) {
-      audioFile = "/sounds/10MB.mp3"
-    }
-
-    soundRef.current = new Howl({
-      src: [audioFile],
-      html5: true,
-      onplay: () => {
-        if (videoRef.current) {
-          videoRef.current.play()
-        }
-      },
-      onend: () => {
-        setIsSpeaking(false)
-      },
-    })
-
-    soundRef.current.play()
+    setTimeout(() => {
+      setIsSpeaking(false)
+    }, 5000)
   }
 
   const getCurrentDate = () => {
@@ -890,6 +859,25 @@ export default function FeederPage({
                 <button
                   onClick={() => {
                     const trimmedValue = dimensionValue.trim()
+
+                    // === 1. DEFINE LIMITS HERE ===
+                    // Map: feederType -> { Dimension: MaxValue }
+                    const limits: Record<string, Record<string, number>> = {
+                      "bowl": { "C": 150 },
+                      "set-a": { "B": 150 },
+                      "set-b": { "C": 150 },
+                      "set-c": { "A": 150 }
+                    }
+
+                    // === 2. CHECK LIMIT ===
+                    const maxVal = limits[feederType]?.[currentDimension]
+                    
+                    if (maxVal !== undefined && parseFloat(trimmedValue) > maxVal) {
+                      // Trigger the Mini Robot Warning
+                      playErrorSound(`For dimension ${currentDimension}, the maximum length is ${maxVal}mm.`)
+                      return // Stop here (don't save)
+                    }
+
                     if (trimmedValue !== "") {
                       updateDimension(currentDimension, trimmedValue)
                     } else {
