@@ -15,7 +15,7 @@ import ModelPreview from "./model-preview"
 // ==========================================
 // CONFIGURATION: INPUT LIMITS
 // ==========================================
-const DEFAULT_LIMITS = { min: 50, max: 9999 }
+const DEFAULT_LIMITS = { min: 0, max: 10000 }
 
 const FEEDER_LIMITS: Record<string, Record<string, { min?: number; max?: number }>> = {
   "bowl": {
@@ -23,7 +23,10 @@ const FEEDER_LIMITS: Record<string, Record<string, { min?: number; max?: number 
     "B": { min: 120, max: 800 },
     "C": { min: 10, max: 150 }
   },
-  "linear": {},
+  "linear": {
+    "C": { min: 68, max: 200 },
+    "D": { min: 50, max: 500 }
+  },
   "hopper": {},
   "set-a": { "B": { max: 150 } },
   "set-b": { "C": { max: 150 } },

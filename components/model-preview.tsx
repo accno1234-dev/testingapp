@@ -12,14 +12,29 @@ import * as THREE from "three"
 
 const GLOBAL_SCALE = 0.001
 
+// New Type Definitions for Flexible Scaling
+type AxisRule = {
+  axis: "x" | "y" | "z"  // Which axis to scale on the 3D part
+  input: string          // Which User Input dimension controls this? (e.g. "A", "B")
+  base: number           // The native size of this part's axis in the GLB file (mm)
+}
+
+type PartScalingRule = {
+  targetPart: string     // Name of the object in Blender (e.g. "A", "C")
+  rules: AxisRule[]      // List of scaling rules for this part
+}
+
 type SizeRule = {
-  dimension: string | string[]
-  min: number       
-  max: number       
-  file: string      
+  dimension: string | string[] // Input used to SELECT the file (e.g. "C")
+  min: number
+  max: number
+  file: string
+  baseSize?: number            // Simple Mode: Native size for uniform scaling (Bowl)
+  scaling?: PartScalingRule[]  // Advanced Mode: Specific part scaling (Linear)
 }
 
 const MODEL_SIZE_RULES: Record<string, SizeRule[]> = {
+  // === BOWL (Simple Mode: Uniform Scaling) ===
   bowl: [
     { dimension: ["A", "B"], min: 120, max: 149, file: "bowl-90.glb" }, 
     { dimension: ["A", "B"], min: 150, max: 249, file: "bowl-120.glb" }, 
@@ -30,7 +45,48 @@ const MODEL_SIZE_RULES: Record<string, SizeRule[]> = {
     { dimension: ["A", "B"], min: 620, max: 759, file: "bowl-390.glb" },
     { dimension: ["A", "B"], min: 760, max: 800, file: "bowl-460.glb" }
   ],
-  linear: [],
+
+  linear: [
+    { 
+      dimension: "C",       // User Input
+      min: 68, max: 76,  
+      file: "linear-L5A.glb", 
+      // SCALE specific parts using specific inputs
+      scaling: [{ targetPart: "A", // 3D Object Name "A"
+                  // Input A controls Width (X) (in blender is X), Input B controls Depth (Z) (in blender is Y)
+                  rules: [{ axis: "x", input: "B", base: 74 }, { axis: "z", input: "A", base: 70 }]},
+                { targetPart: "C", // 3D Object Name "C"
+                  rules: [{ axis: "x", input: "D", base: 98 }]}]
+    },
+    { 
+      dimension: "C",  
+      min: 77, max: 91,  
+      file: "linear-L15A.glb", 
+      scaling: [{ targetPart: "A", rules: [{ axis: "x", input: "B", base: 90 }, { axis: "z", input: "A", base: 90 }]},
+                { targetPart: "C", rules: [{ axis: "x", input: "D", base: 200 }]}]
+    },
+    { 
+      dimension: "C",  
+      min: 92, max: 118,  
+      file: "linear-L25A.glb", 
+      scaling: [{ targetPart: "A", rules: [{ axis: "x", input: "B", base: 120 }, { axis: "z", input: "A", base: 120 }]},
+                { targetPart: "C", rules: [{ axis: "x", input: "D", base: 250 }]}]
+    },
+    { 
+      dimension: "C",  
+      min: 119, max: 154,  
+      file: "linear-L60A.glb", 
+      scaling: [{ targetPart: "A", rules: [{ axis: "x", input: "B", base: 140 }, { axis: "z", input: "A", base: 140 }]},
+                { targetPart: "C", rules: [{ axis: "x", input: "D", base: 300 }]}]
+    },
+    { 
+      dimension: "C",  
+      min: 155, max: 200,  
+      file: "linear-L125A.glb", 
+      scaling: [{ targetPart: "A", rules: [{ axis: "x", input: "B", base: 180 }, { axis: "z", input: "A", base: 180 }]},
+                { targetPart: "C", rules: [{ axis: "x", input: "D", base: 400 }]}]
+    }
+  ],
   hopper: [],
   "set-a": [],
   "set-b": [],
@@ -50,7 +106,19 @@ const getBaseFolder = (type: string) => {
 const getDefaultModel = (type: string) => `/models/${type}.glb`
 
 // ==========================================
-// REFERENCE OBJECT (Soda Can)
+// CAMERA POSITIONS
+// ==========================================
+const focusMap: Record<string, { position: [number, number, number]; target: [number, number, number] }> = {
+  bowl: { position: [0.01, 0.28, 0.60], target: [-0.02, -0.08, 0] },
+  linear: { position: [0.5, 0.3, 0.5], target: [0, 0, 0] },
+  hopper: { position: [-0.4, 0.3, 0.5], target: [0, 0, 0] },
+  "set-a": { position: [0, 0.4, 1.0], target: [0, 0, 0] },
+  "set-b": { position: [-0.5, 0.4, 1.0], target: [0, 0, 0] },
+  "set-c": { position: [-0.5, 0.5, 1.4], target: [0, 0, 0] },
+}
+
+// ==========================================
+// REFERENCE OBJECT
 // ==========================================
 type ReferenceObjectProps = {
   feederType: string
@@ -61,21 +129,23 @@ function ReferenceObject({ feederType, dimensions }: ReferenceObjectProps) {
   const canHeight = 115 * GLOBAL_SCALE
   const canRadius = 33 * GLOBAL_SCALE
 
-  // --- DYNAMIC POSITION CALCULATION ---
   const xOffset = useMemo(() => {
-    // UPDATED: Default closer to center (10cm instead of 15cm)
     let offset = -0.1 
 
-    if (feederType === "bowl" && dimensions["A"]) {
+    if (feederType === "bowl") {
       const dimA = parseFloat(dimensions["A"])
       if (!isNaN(dimA)) {
         const worldRadius = (dimA * GLOBAL_SCALE) / 2
-        // Set distance with soda can and the model
         offset = -(worldRadius + 0.08)
       }
+    } else if (feederType === "linear") {
+       // Just using A as a rough estimate for gap
+       const dimA = parseFloat(dimensions["A"])
+       if (!isNaN(dimA)) {
+         offset = -((dimA * GLOBAL_SCALE) / 2 + 0.08)
+       }
     }
     
-    // Safety check: Don't let it be closer than 8cm (-0.08)
     return Math.min(offset, -0.08)
   }, [feederType, dimensions])
 
@@ -91,7 +161,7 @@ function ReferenceObject({ feederType, dimensions }: ReferenceObjectProps) {
       </mesh>
       <Html position={[0, canHeight / 2 + 0.05, 0]} center zIndexRange={[100, 0]}>
         <div className="bg-black/75 text-white px-2 py-1 rounded text-[10px] whitespace-nowrap font-sans border border-white/20">
-          Reference Object, (H: 115mm)
+          Ref: 115mm
         </div>
       </Html>
     </group>
@@ -104,27 +174,12 @@ function ReferenceObject({ feederType, dimensions }: ReferenceObjectProps) {
 
 function useIsPortraitMobile() {
   const [isPortraitMobile, setIsPortraitMobile] = useState(false)
-  const checkOrientation = () => {
-    const isMobile = window.innerWidth < 768
-    const isPortrait = window.innerHeight > window.innerWidth
-    setIsPortraitMobile(isMobile && isPortrait)
-  }
   useEffect(() => {
-    checkOrientation()
-    window.addEventListener("resize", checkOrientation)
-    return () => window.removeEventListener("resize", checkOrientation)
+    const check = () => setIsPortraitMobile(window.innerWidth < 768 && window.innerHeight > window.innerWidth)
+    check(); window.addEventListener("resize", check)
+    return () => window.removeEventListener("resize", check)
   }, [])
   return isPortraitMobile
-}
-
-// CAMERA POSITIONS
-const focusMap: Record<string, { position: [number, number, number]; target: [number, number, number] }> = {
-  bowl: { position: [0.01, 0.28, 0.60], target: [-0.02, -0.08, 0] },
-  linear: { position: [0.5, 0.3, 0.5], target: [0, 0, 0] },
-  hopper: { position: [-0.4, 0.3, 0.5], target: [0, 0, 0] },
-  "set-a": { position: [0, 0.4, 1.0], target: [0, 0, 0] },
-  "set-b": { position: [-0.5, 0.4, 1.0], target: [0, 0, 0] },
-  "set-c": { position: [-0.5, 0.5, 1.4], target: [0, 0, 0] },
 }
 
 type CameraControllerProps = {
@@ -137,39 +192,28 @@ function CameraController({ modelType, dimensions, controlsRef }: CameraControll
   const camera = useRef<THREE.PerspectiveCamera | null>(null)
   const { camera: defaultCamera } = useThree()
 
-  // --- DYNAMIC ZOOM & TARGET CALCULATION ---
-    const { zoomMultiplier, targetHeight } = useMemo(() => {
-        // 1. SET ALL ZOOM TO BE THE SAME
-        const multiplier = 1.7
+  const { zoomMultiplier, targetHeight } = useMemo(() => {
+    const multiplier = 1.7
+    let tHeight = 0.12 
 
-        // 2. Keep Target Height Logic (To look at center of machine)
-        let tHeight = 0.12 
+    if (modelType === "bowl" && dimensions["A"]) {
+      const size = parseFloat(dimensions["A"])
+      if (!isNaN(size)) tHeight = (size * GLOBAL_SCALE) / 2
+    }
+    
+    return { zoomMultiplier: multiplier, targetHeight: tHeight }
+  }, [modelType, dimensions])
 
-        if (modelType === "bowl" && dimensions["A"]) {
-        const size = parseFloat(dimensions["A"])
-        if (!isNaN(size)) {
-            tHeight = (size * GLOBAL_SCALE) / 2
-        }
-        } else {
-        if (modelType.includes("set")) tHeight = 0.3
-        }
-        
-        return { zoomMultiplier: multiplier, targetHeight: tHeight }
-    }, [modelType, dimensions])
-
-    useEffect(() => {
+  useEffect(() => {
     if (camera.current && controlsRef.current) {
       const focus = Object.entries(focusMap).find(([key]) => modelType.includes(key))?.[1]
       if (focus) {
         const newPos = new THREE.Vector3(...focus.position).multiplyScalar(zoomMultiplier)
         const newTarget = new THREE.Vector3(focus.target[0], targetHeight + focus.target[1], focus.target[2])
-
         camera.current.position.copy(newPos)
         camera.current.lookAt(newTarget)
-        
         controlsRef.current.target.copy(newTarget)
         controlsRef.current.update()
-
         defaultCamera.position.copy(camera.current.position)
         defaultCamera.rotation.copy(camera.current.rotation)
       }
@@ -179,24 +223,47 @@ function CameraController({ modelType, dimensions, controlsRef }: CameraControll
   return <PerspectiveCamera ref={camera} makeDefault fov={50} near={0.01} far={100} />
 }
 
-function Model({ path, onLoaded }: { path: string; onLoaded: () => void }) {
+// ------------------------------------------
+// UPDATED MODEL COMPONENT
+// Handles both Root Scaling and Multi-Part Scaling
+// ------------------------------------------
+type ModelProps = {
+  path: string
+  rootScale: number | [number, number, number]
+  partConfigs?: { name: string; scale: [number, number, number] }[]
+  onLoaded: () => void
+}
+
+function Model({ path, rootScale, partConfigs, onLoaded }: ModelProps) {
   const { scene } = useGLTF(path, true, undefined, () => onLoaded())
   const clonedScene = useMemo(() => scene.clone(), [scene])
   const modelRef = useRef<THREE.Group>(null)
 
   useEffect(() => {
+    // 1. Center the model
     if (modelRef.current) {
       const box = new THREE.Box3().setFromObject(modelRef.current)
       const center = box.getCenter(new THREE.Vector3())
       modelRef.current.position.x = -center.x
       modelRef.current.position.z = -center.z
-      modelRef.current.position.y = -box.min.y // Sit on floor
+      modelRef.current.position.y = -box.min.y
     }
-  }, [path])
+
+    // 2. APPLY PART SCALING (Loop through config)
+    if (partConfigs && partConfigs.length > 0 && clonedScene) {
+      partConfigs.forEach(config => {
+        const targetObject = clonedScene.getObjectByName(config.name)
+        if (targetObject) {
+          targetObject.scale.set(config.scale[0], config.scale[1], config.scale[2])
+          // console.log(`Scaled ${config.name}:`, config.scale)
+        }
+      })
+    }
+  }, [path, partConfigs, clonedScene])
 
   return (
     <group ref={modelRef}>
-      <primitive object={clonedScene} scale={GLOBAL_SCALE} />
+      <primitive object={clonedScene} scale={rootScale} />
     </group>
   )
 }
@@ -217,8 +284,14 @@ export default function ModelPreview({ isOpen, onClose, feederType, dimensions }
   const [isLoading, setIsLoading] = useState(true)
   const controlsRef = useRef<any>(null)
 
-  const modelPath = useMemo(() => {
+  // --- MATCHING & SCALING LOGIC ---
+  const { modelPath, rootScale, partConfigs } = useMemo(() => {
     const rules = MODEL_SIZE_RULES[feederType] || []
+    
+    let selectedFile = getDefaultModel(feederType)
+    let computedRootScale: number | [number, number, number] = GLOBAL_SCALE
+    let computedPartConfigs: { name: string; scale: [number, number, number] }[] = []
+
     const matchedRule = rules.find((rule) => {
       const dimKeys = Array.isArray(rule.dimension) ? rule.dimension : [rule.dimension]
       return dimKeys.some(key => {
@@ -227,10 +300,47 @@ export default function ModelPreview({ isOpen, onClose, feederType, dimensions }
         return userValue >= rule.min && userValue <= rule.max
       })
     })
+
     if (matchedRule) {
-      return `${getBaseFolder(feederType)}${matchedRule.file}`
+      selectedFile = `${getBaseFolder(feederType)}${matchedRule.file}`
+      
+      // === ADVANCED SCALING (Specific Parts) ===
+      if (matchedRule.scaling) {
+        computedRootScale = GLOBAL_SCALE // Keep main object fixed
+        
+        computedPartConfigs = matchedRule.scaling.map(partRule => {
+          let sx = 1, sy = 1, sz = 1
+          
+          // Calculate scale for each axis defined in config
+          partRule.rules.forEach(r => {
+            const val = parseFloat(dimensions[r.input])
+            if (!isNaN(val) && r.base > 0) {
+              const ratio = val / r.base
+              if (r.axis === "x") sx = ratio
+              if (r.axis === "y") sy = ratio
+              if (r.axis === "z") sz = ratio
+            }
+          })
+          
+          return { name: partRule.targetPart, scale: [sx, sy, sz] }
+        })
+      } 
+      
+      // === SIMPLE SCALING ===
+      else if (matchedRule.baseSize) {
+        const dimKeys = Array.isArray(matchedRule.dimension) ? matchedRule.dimension : [matchedRule.dimension]
+        const inputValues = dimKeys
+          .map(k => parseFloat(dimensions[k]))
+          .filter(v => !isNaN(v))
+        
+        if (inputValues.length > 0) {
+          const size = Math.max(...inputValues)
+          computedRootScale = (size / matchedRule.baseSize) * GLOBAL_SCALE
+        }
+      }
     }
-    return getDefaultModel(feederType)
+    
+    return { modelPath: selectedFile, rootScale: computedRootScale, partConfigs: computedPartConfigs }
   }, [feederType, dimensions])
 
   if (!isOpen) return null
@@ -247,15 +357,9 @@ export default function ModelPreview({ isOpen, onClose, feederType, dimensions }
           <div className="absolute top-0 left-0 right-0 z-10 flex justify-between items-center p-4 pointer-events-none">
             <div className="bg-black/80 text-white px-4 py-2 rounded-lg pointer-events-auto shadow-lg backdrop-blur-md">
               <h3 className="font-bold text-sm">Visual Preview</h3>
-              <p className="text-xs text-gray-300 font-mono mt-0.5">
-                Compare the height.
-              </p>
+              <p className="text-xs text-gray-300 font-mono mt-0.5">Compare the reference object.</p>
             </div>
-            <button 
-              onClick={onClose} 
-              className="bg-white/90 p-2 rounded-full hover:bg-white text-black pointer-events-auto shadow-lg transition-transform hover:scale-110"
-              aria-label="Close"
-            >
+            <button onClick={onClose} className="bg-white/90 p-2 rounded-full hover:bg-white text-black pointer-events-auto shadow-lg transition-transform hover:scale-110">
               <X size={24} />
             </button>
           </div>
@@ -279,19 +383,17 @@ export default function ModelPreview({ isOpen, onClose, feederType, dimensions }
               <spotLight position={[-10, 0, 10]} angle={0.5} penumbra={1} intensity={1} />
 
               <Suspense fallback={null}>
-                <Model path={modelPath} onLoaded={() => setIsLoading(false)} />
+                <Model 
+                  path={modelPath} 
+                  rootScale={rootScale} 
+                  partConfigs={partConfigs} 
+                  onLoaded={() => setIsLoading(false)} 
+                />
                 <ReferenceObject feederType={feederType} dimensions={dimensions} />
                 <ContactShadows resolution={1024} scale={10} blur={1} opacity={0.5} far={1} color="#000000" />
               </Suspense>
 
-              <OrbitControls 
-                ref={controlsRef}
-                enablePan 
-                enableZoom 
-                enableRotate 
-                minPolarAngle={0}
-                maxPolarAngle={Math.PI / 2.1}
-              />
+              <OrbitControls ref={controlsRef} enablePan enableZoom enableRotate minPolarAngle={0} maxPolarAngle={Math.PI / 2.1} />
             </Canvas>
           </div>
 
