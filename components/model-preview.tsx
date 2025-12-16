@@ -12,11 +12,17 @@ import * as THREE from "three"
 
 const GLOBAL_SCALE = 0.001
 
+const HIDE_REFERENCE_FOR = ["hopper", "set-a", "set-b", "set-c"] //Hide reference object
+
 // New Type Definitions for Flexible Scaling
 type AxisRule = {
   axis: "x" | "y" | "z"  // Which axis to scale on the 3D part
   input: string          // Which User Input dimension controls this? (e.g. "A", "B")
   base: number           // The native size of this part's axis in the GLB file (mm)
+  offset?: number        // Fixed mm to add
+  overlapInput?: string  // Input controlling the container (e.g. "D")
+  overlapBase?: number   // Base size of the container
+  overlapSize?: number   // Hidden length at base size
 }
 
 type PartScalingRule = {
@@ -87,7 +93,13 @@ const MODEL_SIZE_RULES: Record<string, SizeRule[]> = {
                 { targetPart: "C", rules: [{ axis: "x", input: "D", base: 400 }]}]
     }
   ],
-  hopper: [],
+  hopper: [
+    {
+      dimension:"C", min: 100, max: 2000, file: "hopper-d.glb", 
+      scaling: [{targetPart: "B", rules: [{ axis: "x", input: "B", base: 33 }, { axis: "z", input: "A", base: 37 }, { axis: "y", input: "C", base: 89 }]},
+                {targetPart: "A", rules: [{ axis: "x", input: "B", base: 33 }, { axis: "z", input: "F", base: 47, overlapBase: 47, overlapSize: 37 }, { axis: "y", input: "C", base: 89 }]}]
+    }
+  ],
   "set-a": [],
   "set-b": [],
   "set-c": [],
@@ -161,7 +173,7 @@ function ReferenceObject({ feederType, dimensions }: ReferenceObjectProps) {
       </mesh>
       <Html position={[0, canHeight / 2 + 0.05, 0]} center zIndexRange={[100, 0]}>
         <div className="bg-black/75 text-white px-2 py-1 rounded text-[10px] whitespace-nowrap font-sans border border-white/20">
-          Ref: 115mm
+          Reference Object (H: 115mm)
         </div>
       </Html>
     </group>
@@ -315,13 +327,29 @@ export default function ModelPreview({ isOpen, onClose, feederType, dimensions }
           partRule.rules.forEach(r => {
             const val = parseFloat(dimensions[r.input])
             if (!isNaN(val) && r.base > 0) {
-              const ratio = val / r.base
-              if (r.axis === "x") sx = ratio
-              if (r.axis === "y") sy = ratio
-              if (r.axis === "z") sz = ratio
+              let currentOffset = r.offset || 0
+              // Calculate Dynamic Overlap
+              if (r.overlapInput && r.overlapBase && r.overlapSize) {
+                const containerVal = parseFloat(dimensions[r.overlapInput])
+                if (!isNaN(containerVal)) {
+                  // How much did the container grow?
+                  const containerScale = containerVal / r.overlapBase
+                  // Add proportional overlap
+                  currentOffset += r.overlapSize * containerScale
+                } else {
+                  currentOffset += r.overlapSize // Fallback
+                }
+              }
+                // Calculate final scale ratio
+                const targetSize = val + currentOffset
+                const ratio = targetSize / r.base
+                // === END OF NEW LOGIC ===
+
+                if (r.axis === "x") sx = ratio
+                if (r.axis === "y") sy = ratio
+                if (r.axis === "z") sz = ratio
             }
           })
-          
           return { name: partRule.targetPart, scale: [sx, sy, sz] }
         })
       } 
@@ -357,7 +385,6 @@ export default function ModelPreview({ isOpen, onClose, feederType, dimensions }
           <div className="absolute top-0 left-0 right-0 z-10 flex justify-between items-center p-4 pointer-events-none">
             <div className="bg-black/80 text-white px-4 py-2 rounded-lg pointer-events-auto shadow-lg backdrop-blur-md">
               <h3 className="font-bold text-sm">Visual Preview</h3>
-              <p className="text-xs text-gray-300 font-mono mt-0.5">Compare the reference object.</p>
             </div>
             <button onClick={onClose} className="bg-white/90 p-2 rounded-full hover:bg-white text-black pointer-events-auto shadow-lg transition-transform hover:scale-110">
               <X size={24} />
@@ -389,7 +416,9 @@ export default function ModelPreview({ isOpen, onClose, feederType, dimensions }
                   partConfigs={partConfigs} 
                   onLoaded={() => setIsLoading(false)} 
                 />
-                <ReferenceObject feederType={feederType} dimensions={dimensions} />
+                {!HIDE_REFERENCE_FOR.includes(feederType) && (
+                  <ReferenceObject feederType={feederType} dimensions={dimensions} />
+                )}
                 <ContactShadows resolution={1024} scale={10} blur={1} opacity={0.5} far={1} color="#000000" />
               </Suspense>
 

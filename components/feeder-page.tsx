@@ -27,7 +27,9 @@ const FEEDER_LIMITS: Record<string, Record<string, { min?: number; max?: number 
     "C": { min: 68, max: 200 },
     "D": { min: 50, max: 500 }
   },
-  "hopper": {},
+  "hopper": { 
+    "C": { min:100, max: 2000 }
+  },
   "set-a": { "B": { max: 150 } },
   "set-b": { "C": { max: 150 } },
   "set-c": { "A": { max: 150 } },
