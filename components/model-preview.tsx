@@ -100,8 +100,36 @@ const MODEL_SIZE_RULES: Record<string, SizeRule[]> = {
                 {targetPart: "A", rules: [{ axis: "x", input: "B", base: 33 }, { axis: "z", input: "F", base: 47, overlapBase: 47, overlapSize: 37 }, { axis: "y", input: "C", base: 89 }]}]
     }
   ],
-  "set-a": [],
-  "set-b": [],
+  "set-a": [
+    {
+      dimension:"H", min: 150, max: 300, file:"set-a-1.glb", 
+      scaling: [{targetPart: "A", rules:[{axis: "x", input: "A", base: 342}, {axis: "z", input: "E", base: 373 }]},
+                {targetPart: "C", rules:[{axis: "z", input: "C", base: 86, overlapInput: "D", overlapBase: 1, overlapSize: 1}]}]
+    },
+    {
+      dimension:"H", min: 300, max: 500, file:"set-a-2.glb", 
+      scaling: [{targetPart: "A", rules:[{axis: "x", input: "A", base: 571}, {axis: "z", input: "E", base: 623 }]},
+                {targetPart: "C", rules:[{axis: "z", input: "C", base: 144, overlapInput: "D", overlapBase: 1, overlapSize: 1}]}]
+    },
+    {
+      dimension:"H", min: 500, max: 700, file:"set-a-3.glb", 
+      scaling: [{targetPart: "A", rules:[{axis: "x", input: "A", base: 857}, {axis: "z", input: "E", base: 934 }]},
+                {targetPart: "C", rules:[{axis: "z", input: "C", base: 215, overlapInput: "D", overlapBase: 1, overlapSize: 1}]}]
+    },
+    {
+      dimension:"H", min: 700, max: 900, file:"set-a-4.glb", 
+      scaling: [{targetPart: "A", rules:[{axis: "x", input: "A", base: 1142}, {axis: "z", input: "E", base: 1245 }]},
+                {targetPart: "C", rules:[{axis: "z", input: "C", base: 287, overlapInput: "D", overlapBase: 1, overlapSize: 1}]}]
+    }
+  ],
+  "set-b": [
+    {
+      dimension:"E", min: 0, max: 9999, file:"set-b-d.glb", 
+      scaling: [{targetPart: "B", rules:[{axis: "x", input: "D", base: 150}, {axis: "z", input: "A", base: 178 }]},
+                {targetPart: "C", rules:[{axis: "x", input: "B", base: 64}, {axis: "z", input: "B", base: 64}, {axis: "y", input: "F", base: 100}]},
+                {targetPart: "A", rules:[{axis: "x", input: "E", base: 167}, {axis: "z", input: "E", base: 167}, {axis: "y", input: "E", base: 167}]}]
+    }
+  ],
   "set-c": [],
 }
 
