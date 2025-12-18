@@ -239,7 +239,11 @@ type ModelProps = {
 }
 
 function Model({ path, rootScale, partConfigs, onLoaded }: ModelProps) {
-  const { scene } = useGLTF(path, true, undefined, () => onLoaded())
+  const { scene } = useGLTF(path, true) 
+  useEffect(() => {
+    onLoaded()
+  }, [onLoaded])
+
   const clonedScene = useMemo(() => scene.clone(), [scene])
   const modelRef = useRef<THREE.Group>(null)
 
