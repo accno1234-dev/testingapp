@@ -40,59 +40,24 @@ type SizeRule = {
 }
 
 const MODEL_SIZE_RULES: Record<string, SizeRule[]> = {
-  // === BOWL (Simple Mode: Uniform Scaling) ===
+
   bowl: [
-    { dimension: ["A", "B"], min: 120, max: 149, file: "bowl-90.glb" }, 
-    { dimension: ["A", "B"], min: 150, max: 249, file: "bowl-120.glb" }, 
-    { dimension: ["A", "B"], min: 250, max: 309, file: "bowl-150.glb" },
-    { dimension: ["A", "B"], min: 310, max: 369, file: "bowl-190.glb" }, 
-    { dimension: ["A", "B"], min: 370, max: 499, file: "bowl-230.glb" }, 
-    { dimension: ["A", "B"], min: 500, max: 619, file: "bowl-300.glb" },
-    { dimension: ["A", "B"], min: 620, max: 759, file: "bowl-390.glb" },
-    { dimension: ["A", "B"], min: 760, max: 800, file: "bowl-460.glb" }
+    { 
+      dimension: "A", min: 0, max: 900, file: "bowl-d.glb",
+      scaling: [{targetPart: "A", rules: [{axis: "x", input: "A", base: 115}, {axis: "z", input: "B", base: 115}, {axis: "y", input: "E", base: 90}]},
+                {targetPart: "B", rules: [{axis: "x", input: "A", base: 115}, {axis: "z", input: "C", base: 25}, {axis: "y", input: "E", base: 90}]}]
+    }
   ],
 
   linear: [
-    { 
-      dimension: "C",       // User Input
-      min: 68, max: 76,  
-      file: "linear-L5A.glb", 
-      // SCALE specific parts using specific inputs
-      scaling: [{ targetPart: "A", // 3D Object Name "A"
-                  // Input A controls Width (X) (in blender is X), Input B controls Depth (Z) (in blender is Y)
-                  rules: [{ axis: "x", input: "B", base: 74 }, { axis: "z", input: "A", base: 70 }]},
-                { targetPart: "C", // 3D Object Name "C"
-                  rules: [{ axis: "x", input: "D", base: 98 }]}]
-    },
-    { 
-      dimension: "C",  
-      min: 77, max: 91,  
-      file: "linear-L15A.glb", 
-      scaling: [{ targetPart: "A", rules: [{ axis: "x", input: "B", base: 90 }, { axis: "z", input: "A", base: 90 }]},
-                { targetPart: "C", rules: [{ axis: "x", input: "D", base: 200 }]}]
-    },
-    { 
-      dimension: "C",  
-      min: 92, max: 118,  
-      file: "linear-L25A.glb", 
-      scaling: [{ targetPart: "A", rules: [{ axis: "x", input: "B", base: 120 }, { axis: "z", input: "A", base: 120 }]},
-                { targetPart: "C", rules: [{ axis: "x", input: "D", base: 250 }]}]
-    },
-    { 
-      dimension: "C",  
-      min: 119, max: 154,  
-      file: "linear-L60A.glb", 
-      scaling: [{ targetPart: "A", rules: [{ axis: "x", input: "B", base: 140 }, { axis: "z", input: "A", base: 140 }]},
-                { targetPart: "C", rules: [{ axis: "x", input: "D", base: 300 }]}]
-    },
-    { 
-      dimension: "C",  
-      min: 155, max: 200,  
-      file: "linear-L125A.glb", 
-      scaling: [{ targetPart: "A", rules: [{ axis: "x", input: "B", base: 180 }, { axis: "z", input: "A", base: 180 }]},
-                { targetPart: "C", rules: [{ axis: "x", input: "D", base: 400 }]}]
+    {
+      dimension: "C", min: 0, max: 300, file: "linear-d.glb",
+      scaling: [{targetPart: "A", rules: [{axis: "x", input: "B", base: 90}, {axis: "z", input: "A", base: 90}, {axis: "y", input: "C", base: 90}]},
+                {targetPart: "B", rules: [{axis: "x", input: "B", base: 90}, {axis: "z", input: "A", base: 90}, {axis: "y", input: "C", base: 90}]},
+                {targetPart: "C", rules: [{axis: "z", input: "D", base: 200}, {axis: "x", input: "A", base: 90}, {axis: "y", input: "C", base: 90}]}]
     }
   ],
+
   hopper: [
     {
       dimension:"C", min: 100, max: 2000, file: "hopper-d.glb", 
@@ -100,37 +65,36 @@ const MODEL_SIZE_RULES: Record<string, SizeRule[]> = {
                 {targetPart: "A", rules: [{ axis: "x", input: "B", base: 33 }, { axis: "z", input: "F", base: 47, overlapBase: 47, overlapSize: 37 }, { axis: "y", input: "C", base: 89 }]}]
     }
   ],
+
   "set-a": [
     {
-      dimension:"H", min: 150, max: 300, file:"set-a-1.glb", 
-      scaling: [{targetPart: "A", rules:[{axis: "x", input: "A", base: 342}, {axis: "z", input: "E", base: 373 }]},
-                {targetPart: "C", rules:[{axis: "z", input: "C", base: 86, overlapInput: "D", overlapBase: 1, overlapSize: 1}]}]
-    },
-    {
-      dimension:"H", min: 300, max: 500, file:"set-a-2.glb", 
-      scaling: [{targetPart: "A", rules:[{axis: "x", input: "A", base: 571}, {axis: "z", input: "E", base: 623 }]},
-                {targetPart: "C", rules:[{axis: "z", input: "C", base: 144, overlapInput: "D", overlapBase: 1, overlapSize: 1}]}]
-    },
-    {
-      dimension:"H", min: 500, max: 700, file:"set-a-3.glb", 
-      scaling: [{targetPart: "A", rules:[{axis: "x", input: "A", base: 857}, {axis: "z", input: "E", base: 934 }]},
-                {targetPart: "C", rules:[{axis: "z", input: "C", base: 215, overlapInput: "D", overlapBase: 1, overlapSize: 1}]}]
-    },
-    {
-      dimension:"H", min: 700, max: 900, file:"set-a-4.glb", 
-      scaling: [{targetPart: "A", rules:[{axis: "x", input: "A", base: 1142}, {axis: "z", input: "E", base: 1245 }]},
-                {targetPart: "C", rules:[{axis: "z", input: "C", base: 287, overlapInput: "D", overlapBase: 1, overlapSize: 1}]}]
+      dimension:"H", min: 0, max: 10000, file:"set-a-d.glb", 
+      scaling: [{targetPart: "A", rules:[{axis: "x", input: "F", base: 129}, {axis: "z", input: "F", base: 129}, {axis: "y", input: "H", base: 108}]},
+                {targetPart: "B", rules:[{axis: "x", input: "A", base: 154}, {axis: "z", input: "E", base: 168}, {axis: "y", input: "H", base: 108}]},
+                {targetPart: "C", rules:[{axis: "z", input: "C", base: 40, overlapInput: "D", overlapBase: 1, overlapSize: 1}, {axis: "x", input: "F", base: 129}, {axis: "y", input: "H", base: 108}]},
+                {targetPart: "D", rules:[{axis: "y", input: "G", base: 96}, {axis: "x", input: "F", base: 129}, {axis: "z", input: "F", base: 129}, {axis: "y", input: "H", base: 108}]}]
     }
   ],
+
   "set-b": [
     {
-      dimension:"E", min: 0, max: 9999, file:"set-b-d.glb", 
+      dimension:"E", min: 0, max: 10000, file:"set-b-d.glb", 
       scaling: [{targetPart: "B", rules:[{axis: "x", input: "D", base: 150}, {axis: "z", input: "A", base: 178 }]},
                 {targetPart: "C", rules:[{axis: "x", input: "B", base: 64}, {axis: "z", input: "B", base: 64}, {axis: "y", input: "F", base: 100}]},
                 {targetPart: "A", rules:[{axis: "x", input: "E", base: 167}, {axis: "z", input: "E", base: 167}, {axis: "y", input: "E", base: 167}]}]
     }
   ],
-  "set-c": [],
+
+  "set-c": [
+    {
+      dimension: "G", min: 0, max: 10000, file: "set-c-d.glb",
+      scaling: [{targetPart: "A", rules:[{axis: "x", input: "K", base: 55}, {axis: "z", input: "N", base: 86}, {axis: "y", input: "J", base: 118}, {axis: "x", input: "D", base: 43}, {axis: "z", input: "E", base: 86}]},
+                {targetPart: "B", rules:[{axis: "x", input: "M", base: 120}, {axis: "z", input: "O", base: 120}, {axis: "y", input: "G", base: 64}]},
+                {targetPart: "C", rules:[{axis: "x", input: "D", base: 43}, {axis: "z", input: "B", base: 47, overlapInput: "C", overlapBase: 1, overlapSize: 1}, {axis: "y", input: "E", base: 86}, {axis: "y", input: "G", base: 64}]},
+                {targetPart: "D", rules:[{axis: "x", input: "D", base: 43}, {axis: "z", input: "E", base: 86}, {axis: "y", input: "G", base: 64}]},
+                {targetPart: "E", rules:[{axis: "x", input: "D", base: 43}, {axis: "z", input: "E", base: 86}, {axis: "y", input: "F", base: 54}, {axis: "y", input: "G", base: 64}]}]
+    }
+  ]
 }
 
 const getBaseFolder = (type: string) => {
